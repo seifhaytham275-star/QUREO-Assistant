@@ -18,7 +18,7 @@ from playwright.sync_api import sync_playwright
 
 import chapter_guard
 
-START_URL = os.environ.get("QUREO_START_URL", "https://qureo.com/")
+START_URL = os.environ.get("QUREO_START_URL", "https://me-tp.qureo.education/course/javascript_en")
 
 # --- tunable heuristics ----------------------------------------------------
 CHECK_RE = re.compile(r"^\s*(check( answer)?|submit( answer)?|run( code)?|verify|test)\s*$", re.I)

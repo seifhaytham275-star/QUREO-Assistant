@@ -15,7 +15,7 @@ No hidden answer databases, no bypassing of platform restrictions.
 Download **QUREO-Assistant-Setup.exe** from the [Releases](../../releases) page, run it, and make sure Microsoft Edge is installed.
 
 ## Use
-1. *Open QUREO* (or *Login* with your credentials).
+1. *Open QUREO* (opens https://me-tp.qureo.education/course/javascript_en) or *Login* with your credentials.
 2. Enter your OpenRouter API key and choose a model.
 3. Press **Start**. Watch the Activity log; use **Pause**/**Stop** whenever you like.
 
