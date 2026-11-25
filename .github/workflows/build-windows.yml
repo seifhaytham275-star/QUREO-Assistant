@@ -20,7 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Package desktop app
-        run: pyinstaller --noconfirm --onefile --windowed --name QUREO-Assistant --hidden-import browser_helper --collect-all playwright main.py
+        run: pyinstaller --noconfirm --onefile --windowed --name QUREO-Assistant --hidden-import browser_helper --hidden-import keyring.backends.Windows --collect-submodules keyring --collect-all playwright main.py
       - name: Install Inno Setup
         run: choco install innosetup --yes --no-progress
       - name: Build setup installer
