@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -22,9 +26,16 @@ jobs:
       - name: Build setup installer
         shell: cmd
         run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss'
-      - name: Upload Windows installer
+      - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: QUREO-Assistant-Installer
           path: dist/QUREO-Assistant-Setup.exe
           if-no-files-found: error
+      - name: Publish direct EXE download in GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = "v1.0.${{ github.run_number }}"
+          gh release create $tag dist/QUREO-Assistant-Setup.exe --repo ${{ github.repository }} --title "QUREO Assistant ${{ github.run_number }}" --notes "Windows setup installer. Download QUREO-Assistant-Setup.exe and run it to install."
