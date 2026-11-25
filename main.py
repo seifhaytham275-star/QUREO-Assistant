@@ -12,7 +12,7 @@ import ai_solver
 import chapter_guard
 import credentials
 from automation import Automation
-from browser_helper import QureoBrowser
+from browser_helper import QureoBrowser, START_URL
 
 APP_TITLE = "QUREO Assistant · Automated learning through Chapter 17"
 
@@ -27,6 +27,7 @@ class App:
         self.auto = None
         self.running = False
 
+        self.var_url = tk.StringVar(value=START_URL)
         self.var_user = tk.StringVar()
         self.var_pass = tk.StringVar()
         self.var_show = tk.BooleanVar(value=False)
@@ -52,14 +53,16 @@ class App:
 
         login = ttk.LabelFrame(r, text="1 · QUREO login")
         login.pack(fill="x", padx=12, pady=4)
-        ttk.Label(login, text="Email / username").grid(row=0, column=0, sticky="w", padx=6, pady=3)
-        ttk.Entry(login, textvariable=self.var_user, width=40).grid(row=0, column=1, sticky="w", padx=6)
-        ttk.Label(login, text="Password").grid(row=1, column=0, sticky="w", padx=6, pady=3)
+        ttk.Label(login, text="Course link").grid(row=0, column=0, sticky="w", padx=6, pady=3)
+        ttk.Entry(login, textvariable=self.var_url, width=70).grid(row=0, column=1, columnspan=2, sticky="w", padx=6)
+        ttk.Label(login, text="Email / username").grid(row=1, column=0, sticky="w", padx=6, pady=3)
+        ttk.Entry(login, textvariable=self.var_user, width=40).grid(row=1, column=1, sticky="w", padx=6)
+        ttk.Label(login, text="Password").grid(row=2, column=0, sticky="w", padx=6, pady=3)
         self.ent_pass = ttk.Entry(login, textvariable=self.var_pass, show="•", width=40)
-        self.ent_pass.grid(row=1, column=1, sticky="w", padx=6)
-        ttk.Checkbutton(login, text="Show", variable=self.var_show, command=self._toggle_show).grid(row=1, column=2, sticky="w")
-        ttk.Checkbutton(login, text="Remember login (Windows Credential Manager)", variable=self.var_remember).grid(row=2, column=1, sticky="w", padx=6)
-        bar = ttk.Frame(login); bar.grid(row=3, column=0, columnspan=3, sticky="w", padx=6, pady=4)
+        self.ent_pass.grid(row=2, column=1, sticky="w", padx=6)
+        ttk.Checkbutton(login, text="Show", variable=self.var_show, command=self._toggle_show).grid(row=2, column=2, sticky="w")
+        ttk.Checkbutton(login, text="Remember login (Windows Credential Manager)", variable=self.var_remember).grid(row=3, column=1, sticky="w", padx=6)
+        bar = ttk.Frame(login); bar.grid(row=4, column=0, columnspan=3, sticky="w", padx=6, pady=4)
         ttk.Button(bar, text="Open QUREO", command=self.open_qureo).pack(side="left", padx=3)
         ttk.Button(bar, text="Login", command=self.login).pack(side="left", padx=3)
         ttk.Button(bar, text="Forget saved login", command=self.forget).pack(side="left", padx=3)
@@ -157,8 +160,9 @@ class App:
         self.browser.submit(run)
 
     def open_qureo(self):
-        self.log("Opening QUREO in Microsoft Edge…")
-        self._bg(lambda: self.browser.open())
+        url = self.var_url.get().strip() or START_URL
+        self.log(f"Opening {url} in Microsoft Edge…")
+        self._bg(lambda: self.browser.open(url))
 
     def login(self):
         user, pw = self.var_user.get().strip(), self.var_pass.get()
@@ -169,8 +173,9 @@ class App:
                 credentials.save_qureo(user, pw)
             except Exception:
                 messagebox.showwarning("Credential storage", "Could not save to the secure store; login will not be remembered.")
+        url = self.var_url.get().strip() or START_URL
         def work():
-            self.browser.open()
+            self.browser.open(url)
             res = self.browser.try_login(user, pw)
             if res == "logged_in":
                 self.log("✔ Signed in.")
@@ -194,6 +199,8 @@ class App:
             on_progress=lambda ch, snap: self.q.put(("progress", ch, snap)),
             on_done=lambda msg, ok: self.q.put(("done", msg, ok)),
             auto_practice=lambda: self.var_auto.get(),
+            login=lambda: (self.var_user.get().strip(), self.var_pass.get()),
+            start_url=lambda: self.var_url.get().strip() or START_URL,
         )
         self.running = True
         self.var_status.set("Running")

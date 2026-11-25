@@ -111,3 +111,22 @@ def test_login_fills_form_and_detects_captcha():
     b.call(b.page.goto, base + "/captcha")
     assert b.call(b.try_login, "me@example.com", "secret") == "needs_manual"
     b.call(b.close); srv.shutdown()
+
+
+def test_start_opens_browser_by_itself_and_signs_in(env):
+    """Regression: pressing Start with no browser open used to end with 'Browser was closed'."""
+    srv, base = mock_site.serve(start_chapter=17)
+    b = QureoBrowser()
+    assert not b.alive()
+    logs, done = [], {}
+    auto = Automation(b, lambda: "k", lambda: "m", logs.append, lambda *a: None,
+                      lambda msg, ok: done.update(msg=msg, ok=ok), login=lambda: ("me@example.com", "secret"), start_url=lambda: base + "/login")
+    fut = b.submit(auto.run)
+    t0 = time.time()
+    while not fut.done() and time.time() - t0 < 90:
+        time.sleep(0.2)
+    assert fut.done(), "\n".join(logs[-10:])
+    b.call(b.close); srv.shutdown()
+    assert any("Opening Microsoft Edge on " + base in l for l in logs)
+    assert not any("Browser was closed" in l for l in logs)
+    assert done.get("ok") is True, logs[-8:]

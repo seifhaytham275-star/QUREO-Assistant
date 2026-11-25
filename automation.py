@@ -18,12 +18,14 @@ MAX_STEPS = 3000
 
 class Automation:
     def __init__(self, browser, get_key, get_model, log, on_progress, on_done,
-                 max_retries=3, auto_practice=lambda: True):
+                 max_retries=3, auto_practice=lambda: True, login=None, start_url=None):
         self.b = browser
         self.get_key, self.get_model = get_key, get_model
         self.log, self.on_progress, self.on_done = log, on_progress, on_done
         self.max_retries = max_retries
         self.auto_practice = auto_practice
+        self.start_url = start_url
+        self.login = login          # optional callable -> (username, password) or None
         self.stop_evt = threading.Event()
         self.run_evt = threading.Event()   # set = running, clear = paused
         self.run_evt.set()
@@ -54,7 +56,27 @@ class Automation:
         self.on_done(msg, done)
 
     # ---- main loop ------------------------------------------------------
+    def _ensure_browser(self):
+        """Open Edge on the course page if it is not open yet, and sign in if we have credentials."""
+        if self.b.alive():
+            return
+        url = self.start_url() if self.start_url else None
+        self.log(f"Opening Microsoft Edge on {url or 'the default course page'}…")
+        self.b.open(url) if url else self.b.open()
+        creds = self.login() if self.login else None
+        if creds and creds[0] and creds[1]:
+            res = self.b.try_login(*creds)
+            if res == "logged_in":
+                self.log("✔ Signed in.")
+            else:
+                self.pause("Please sign in / finish verification in the Edge window, then press Resume.")
+
     def run(self):
+        try:
+            self._ensure_browser()
+        except Exception as e:
+            self.log(f"⚠ Could not start the browser: {str(e)[:200]}")
+            return self._finish("Browser could not be started.")
         state = {"last_sig": None, "same": 0, "resume_tries": 0}
         steps = 0
         while steps < MAX_STEPS:
