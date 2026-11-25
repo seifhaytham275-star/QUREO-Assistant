@@ -12,7 +12,7 @@ import ai_solver
 import chapter_guard
 import credentials
 from automation import Automation
-from browser_helper import QureoBrowser, START_URL
+from browser_helper import QureoBrowser, START_URL, START_URL
 
 APP_TITLE = "QUREO Assistant · Automated learning through Chapter 17"
 
@@ -38,6 +38,8 @@ class App:
         self.var_chapter = tk.StringVar(value="Chapter: –")
         self.var_lesson = tk.StringVar(value="Lesson: –")
         self.var_status = tk.StringVar(value="Idle")
+        self.var_url = tk.StringVar(value=START_URL)
+        self.var_limit = tk.IntVar(value=chapter_guard.HARD_LIMIT)
 
         self._build()
         self._load_saved()
@@ -84,6 +86,9 @@ class App:
 
         ctl = ttk.Frame(r); ctl.pack(fill="x", padx=12, pady=6)
         ttk.Checkbutton(ctl, text="Auto Practice", variable=self.var_auto).pack(side="left", padx=6)
+        ttk.Label(ctl, text="Stop after chapter").pack(side="left", padx=(12, 2))
+        ttk.Spinbox(ctl, from_=1, to=chapter_guard.HARD_LIMIT, width=4, textvariable=self.var_limit).pack(side="left")
+        ttk.Label(ctl, text=f"(max {chapter_guard.HARD_LIMIT})").pack(side="left", padx=(2, 12))
         self.btn_start = ttk.Button(ctl, text="▶ Start", command=self.start); self.btn_start.pack(side="left", padx=3)
         self.btn_pause = ttk.Button(ctl, text="⏸ Pause", command=self.pause_resume, state="disabled"); self.btn_pause.pack(side="left", padx=3)
         self.btn_stop = ttk.Button(ctl, text="⏹ Stop", command=self.stop, state="disabled"); self.btn_stop.pack(side="left", padx=3)
@@ -123,7 +128,7 @@ class App:
                     if completed:
                         self.bar["value"] = chapter_guard.LAST_CHAPTER
                         self.var_chapter.set(f"Chapter: {chapter_guard.LAST_CHAPTER} of {chapter_guard.LAST_CHAPTER} ✔")
-                        messagebox.showinfo("Done", chapter_guard.DONE_MESSAGE)
+                        messagebox.showinfo("Done", chapter_guard.done_message())
                     self._buttons()
                 elif kind == "error":
                     messagebox.showerror("Error", a[0])
@@ -165,6 +170,7 @@ class App:
         self._bg(lambda: self.browser.open(url))
 
     def login(self):
+        self._apply_settings()
         user, pw = self.var_user.get().strip(), self.var_pass.get()
         if not user or not pw:
             messagebox.showwarning("Login", "Enter your QUREO email/username and password."); return
@@ -186,6 +192,7 @@ class App:
         self._bg(work)
 
     def start(self):
+        lim = self._apply_settings()
         if not self.var_key.get().strip():
             messagebox.showwarning("OpenRouter", "Enter your OpenRouter API key."); return
         if self.var_key.get().strip() and self.var_remember.get():
@@ -205,7 +212,7 @@ class App:
         self.running = True
         self.var_status.set("Running")
         self._buttons()
-        self.log("▶ Auto Practice started (stops after Chapter 17).")
+        self.log(f"▶ Auto Practice started (stops after Chapter {lim}).")
         auto = self.auto
         self._bg(auto.run, "Automation error")
 

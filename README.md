@@ -17,7 +17,8 @@ Download **QUREO-Assistant-Setup.exe** from the [Releases](../../releases) page,
 ## Use
 1. Check the **Course link** box (default https://me-tp.qureo.education/course/javascript_en; paste your own if different), then *Open QUREO* or *Login*. *Start* also opens the browser and signs in by itself.
 2. Enter your OpenRouter API key and choose a model.
-3. Press **Start**. Watch the Activity log; use **Pause**/**Stop** whenever you like.
+3. Paste your exact course URL in **Course URL** and choose **Stop after chapter** (1–17, never more than 17).
+4. Press **Start** (it opens Edge and signs in by itself if needed). Watch the Activity log; use **Pause**/**Stop** whenever you like.
 
 ## Run from source
 ```

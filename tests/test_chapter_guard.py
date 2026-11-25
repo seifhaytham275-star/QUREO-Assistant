@@ -40,3 +40,16 @@ def test_progress_fraction():
     assert g.progress_fraction(None) == 0
     assert g.progress_fraction(17, True) == 1
     assert 0 < g.progress_fraction(5) < 1
+
+
+def test_limit_can_only_be_lowered():
+    try:
+        assert g.set_limit(12) == 12
+        assert g.target_is_forbidden("Chapter 13")
+        assert not g.may_act_in(g.read_chapter("Chapter 13", "", ""))
+        assert g.set_limit(99) == 17          # clamped: can never exceed 17
+        assert g.set_limit("abc") == 17
+        assert g.set_limit(0) == 1
+        assert g.done_message() == "Chapter 1 completed. Automation stopped."
+    finally:
+        g.set_limit(17)

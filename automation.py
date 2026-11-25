@@ -109,7 +109,7 @@ class Automation:
 
         if reading.reliable and reading.chapter > chapter_guard.LAST_CHAPTER:
             self.b.go_back()
-            self._finish(chapter_guard.DONE_MESSAGE, True)
+            self._finish(chapter_guard.done_message(), True)
             return "end"
 
         kind = self.b.classify(snap)
@@ -209,13 +209,13 @@ class Automation:
             tgt = self.b.next_target()
         if tgt is None:
             if at_last:
-                self._finish(chapter_guard.DONE_MESSAGE, True)
+                self._finish(chapter_guard.done_message(), True)
                 return False
             self.pause("No Next/Continue button found. Navigate manually, then Resume.")
             return True
         _, label, href = tgt
         if chapter_guard.target_is_forbidden(label, href):
-            self._finish(chapter_guard.DONE_MESSAGE, True)
+            self._finish(chapter_guard.done_message(), True)
             return False
         before = self.b.snapshot()
         self.b.click_next()
@@ -223,12 +223,12 @@ class Automation:
         r2 = self.b.chapter(after)
         if r2.reliable and r2.chapter > chapter_guard.LAST_CHAPTER:
             self.b.go_back()                      # undo immediately, do nothing in Chapter 18
-            self._finish(chapter_guard.DONE_MESSAGE, True)
+            self._finish(chapter_guard.done_message(), True)
             return False
         if at_last and (after["sig"] == before["sig"] or after["url"].startswith("chrome-error:")):
             # Next led nowhere inside Chapter 17 (or its navigation was blocked): Chapter 17 is done.
             if after["url"].startswith("chrome-error:"):
                 self.b.go_back()
-            self._finish(chapter_guard.DONE_MESSAGE, True)
+            self._finish(chapter_guard.done_message(), True)
             return False
         return True

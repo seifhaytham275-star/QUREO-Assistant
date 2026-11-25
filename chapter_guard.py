@@ -7,8 +7,24 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-LAST_CHAPTER = 17
+HARD_LIMIT = 17          # never exceeded, whatever the user types
+LAST_CHAPTER = HARD_LIMIT
 DONE_MESSAGE = "Chapter 17 completed. Automation stopped."
+
+
+def set_limit(n):
+    """Let the user stop EARLIER than Chapter 17 (clamped to 1..17)."""
+    global LAST_CHAPTER
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        n = HARD_LIMIT
+    LAST_CHAPTER = max(1, min(HARD_LIMIT, n))
+    return LAST_CHAPTER
+
+
+def done_message():
+    return f"Chapter {LAST_CHAPTER} completed. Automation stopped."
 
 # Matches "Chapter 17", "chapter 3:", "Ch. 5", "Chapter 12 - Loops" ...
 _CH = re.compile(r"\b(?:chapter|ch\.?)\s*0*(\d{1,3})\b", re.I)

@@ -130,3 +130,15 @@ def test_start_opens_browser_by_itself_and_signs_in(env):
     assert any("Opening Microsoft Edge on " + base in l for l in logs)
     assert not any("Browser was closed" in l for l in logs)
     assert done.get("ok") is True, logs[-8:]
+
+
+def test_user_limit_stops_earlier_and_never_enters_next_chapter(env):
+    chapter_guard.set_limit(15)
+    try:
+        srv, base = mock_site.serve(start_chapter=15)
+        logs, done = run_auto(base, base + "/dashboard")
+        srv.shutdown()
+        assert done["ok"] and done["msg"] == "Chapter 15 completed. Automation stopped."
+        assert not any("/chapter-16" in h for h in mock_site.HITS), mock_site.HITS
+    finally:
+        chapter_guard.set_limit(17)

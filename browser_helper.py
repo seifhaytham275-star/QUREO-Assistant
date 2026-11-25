@@ -65,6 +65,7 @@ class QureoBrowser:
         self._pw = None
         self._ctx = None
         self.page = None
+        self.start_url = None        # set by the GUI; falls back to START_URL
 
     # ---- threading helper ------------------------------------------------
     def call(self, fn, *args, **kw):
@@ -75,7 +76,8 @@ class QureoBrowser:
         return self._pool.submit(fn, *args, **kw)
 
     # ---- lifecycle (call these through call()/submit()) -------------------
-    def open(self, url=START_URL):
+    def open(self, url=None):
+        url = url or self.start_url or START_URL
         if self.page and not self.page.is_closed():
             self.page.bring_to_front()
             return
