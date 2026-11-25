@@ -98,7 +98,21 @@ class QureoBrowser:
         self._ctx.set_default_timeout(15000)
         self.page = self._ctx.pages[0] if self._ctx.pages else self._ctx.new_page()
         self._install_chapter_block()
+        self.requested_url = url
         self.page.goto(url, wait_until="domcontentloaded")
+
+    def open_report(self):
+        """One line saying what was requested and what actually loaded (for the activity log)."""
+        try:
+            final, title = self.page.url, self.page.title()
+            body = self.page.locator("body").inner_text(timeout=3000)[:3000]
+        except Exception:
+            return f"Requested {getattr(self, 'requested_url', '?')} (could not read the page)"
+        msg = f"Requested: {getattr(self, 'requested_url', '?')} | Loaded: {final} | Title: {title[:60]}"
+        if re.search(r"godaddy", final + " " + title + " " + body, re.I):
+            msg += ("\n⚠ This looks like a GoDaddy page, not QUREO. Open the same link in your normal Edge: "
+                    "if it also shows GoDaddy, the domain/network is the problem (not this app).")
+        return msg
 
     def _install_chapter_block(self):
         """Hard network-level block on URLs that clearly name a chapter > 17."""
